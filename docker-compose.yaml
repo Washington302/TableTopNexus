@@ -1,0 +1,83 @@
+version: "3.8"
+
+networks:
+  ArsNet:
+    external: false
+
+services:
+  ArsLoginServiceDBRedis:
+    container_name: ArsLoginServiceDBRedis
+    image: redis:latest
+    restart: always
+    hostname: ArsLoginServiceDBRedis
+    ports:
+      - "6379:6379"
+    networks:
+      - ArsNet
+
+  ArsCharacterServiceDBMongo:
+    container_name: ArsCharacterServiceDBMongo
+    image: mongo:latest
+    restart: always
+    hostname: ArsCharacterServiceDBMongo
+    ports:
+      - "27017:27017"
+    networks:
+      - ArsNet
+
+  # ArsMagicaEurekaRegistry:
+  #   container_name: ArsMagicaEurekaRegistry
+  #   image: steeltoeoss/eureka-server:latest
+  #   restart: always
+  #   hostname: ArsMagicaEurekaRegistry
+  #   ports:
+  #     - 8761:8761
+  #   networks:
+  #     - ArsNet
+
+  # ArsAPIGatewayOcelot:
+  #   container_name: ArsAPIGatewayOcelot
+  #   build:
+  #     context: ./dotnet-apigateway-ocelot
+  #     dockerfile: Dockerfile
+  #   image: arsocelotgatewayapi:1
+  #   restart: always
+  #   hostname: ArsAPIGatewayOcelot
+  #   ports:
+  #     - 5041:80
+  #   networks:
+  #     - ArsNet
+  #   depends_on:
+  #     - ArsMagicaEurekaRegistry
+
+  ArsCharacterServiceAPI:
+    container_name: ArsCharacterServiceAPI
+    build:
+      context: ./ArsMagica
+      dockerfile: Dockerfile
+    image: arscharacterserviceapi:1
+    restart: always
+    hostname: ArsCharacterServiceAPI
+    ports:
+      - "8080:8080"
+    networks:
+      - ArsNet
+    depends_on:
+      - ArsCharacterServiceDBMongo
+      # - ArsMagicaEurekaRegistry
+      # - ArsAPIGatewayOcelot
+    
+  ArsLoginServiceAPI:    
+    build:
+      context: ./Login
+      dockerfile: Dockerfile
+    image: arsloginserviceapi:1 
+    restart: always
+    ports:
+      - "8081:8080"
+    networks:
+      - ArsNet
+    depends_on:
+      - ArsLoginServiceDBRedis
+      # - ArsMagicaEurekaRegistry
+      # - ArsAPIGatewayOcelot
